@@ -1,12 +1,17 @@
 package com.retailpulse.app;
 
 import com.retailpulse.model.Product;
+import com.retailpulse.repository.ProductRepository;
+import com.retailpulse.repository.OrderRepository;
 import com.retailpulse.repository.InMemoryProductRepository;
 import com.retailpulse.repository.InMemoryOrderRepository;
 import com.retailpulse.service.InventoryService;
 import com.retailpulse.service.PurchaseService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RetailPulseApplication {
 
@@ -16,9 +21,9 @@ public class RetailPulseApplication {
 
         Scanner scanner = new Scanner(System.in);
 
-        // Repositories
-        InMemoryProductRepository productRepo = new InMemoryProductRepository();
-        InMemoryOrderRepository orderRepo = new InMemoryOrderRepository();
+        // ✅ Phase 2 — Use interfaces
+        ProductRepository productRepo = new InMemoryProductRepository();
+        OrderRepository orderRepo = new InMemoryOrderRepository();
 
         // Services
         InventoryService inventoryService = new InventoryService(productRepo);
@@ -60,7 +65,7 @@ public class RetailPulseApplication {
 
                 case 2:
                     System.out.println("\nAll Products:");
-                    System.out.println(inventoryService.getAllProducts());
+                    inventoryService.getAllProducts().forEach(System.out::println);
                     break;
 
                 case 3:
@@ -79,28 +84,11 @@ public class RetailPulseApplication {
 
                 case 4:
                     System.out.println("\nAll Orders:");
-                    System.out.println(orderRepo.findAll());
+                    orderRepo.findAll().forEach(System.out::println);
                     break;
 
                 case 5:
-                    System.out.println("\nStarting Flash Sale...");
-
-                    Product flashProduct = new Product(999, "FlashItem", 1000, 5);
-                    inventoryService.addProduct(flashProduct);
-
-                    for (int i = 1; i <= 10; i++) {
-                        int userId = i;
-
-                        new Thread(() -> {
-                            try {
-                                purchaseService.purchaseProduct(1000 + userId, 999, 1);
-                                System.out.println("User " + userId + " purchased successfully");
-                            } catch (Exception e) {
-                                System.out.println("User " + userId + " failed: " + e.getMessage());
-                            }
-                        }).start();
-                    }
-
+                    simulateFlashSale(inventoryService, purchaseService);
                     break;
 
                 case 0:
@@ -112,5 +100,63 @@ public class RetailPulseApplication {
                     System.out.println("Invalid choice");
             }
         }
+    }
+
+    // 🔥 FINAL FLASH SALE METHOD (PRO LEVEL)
+    private static void simulateFlashSale(InventoryService inventoryService,
+                                          PurchaseService purchaseService) {
+
+        System.out.println("\n🔥 Starting FLASH SALE simulation...");
+
+        int productId = 999;
+
+        // Fresh product
+        Product flashProduct = new Product(productId, "FlashItem", 1000, 10);
+        inventoryService.addProduct(flashProduct);
+
+        int numberOfUsers = 50;
+
+        List<Thread> threads = new ArrayList<>();
+
+        // ✅ Thread-safe counters
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failureCount = new AtomicInteger(0);
+
+        for (int i = 1; i <= numberOfUsers; i++) {
+
+            int orderId = 1000 + i;
+            int userId = i;
+
+            Thread t = new Thread(() -> {
+                try {
+                    purchaseService.purchaseProduct(orderId, productId, 1);
+                    successCount.incrementAndGet();
+                    System.out.println("✅ User " + userId + " SUCCESS");
+                } catch (Exception e) {
+                    failureCount.incrementAndGet();
+                    System.out.println("❌ User " + userId + " FAILED: " + e.getMessage());
+                }
+            });
+
+            threads.add(t);
+            t.start();
+        }
+
+        // ✅ Wait for all threads
+        for (Thread t : threads) {
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        Product finalProduct = inventoryService.getProduct(productId);
+
+        // 🔥 FINAL RESULT
+        System.out.println("\n===== FLASH SALE RESULT =====");
+        System.out.println("Total Success: " + successCount.get());
+        System.out.println("Total Failed: " + failureCount.get());
+        System.out.println("Final Stock: " + finalProduct.getStockQuantity());
     }
 }

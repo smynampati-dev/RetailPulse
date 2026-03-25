@@ -23,12 +23,13 @@ public class Product {
         this.stockQuantity += quantity;
     }
 
-    public void decreaseStock(int quantity) {
+    // 🔥 Thread-safe + atomic
+    public synchronized boolean decreaseStock(int quantity) {
         if (this.stockQuantity >= quantity) {
             this.stockQuantity -= quantity;
-        } else {
-            throw new RuntimeException("Insufficient stock!");
+            return true;
         }
+        return false;
     }
 
     @Override

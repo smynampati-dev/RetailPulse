@@ -16,29 +16,14 @@ public class Order {
         this.timestamp = LocalDateTime.now();
     }
 
-    public int getOrderId() {
-        return orderId;
-    }
-
-    public int getProductId() {
-        return productId;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
+    public int getOrderId() { return orderId; }
+    public int getProductId() { return productId; }
+    public int getQuantity() { return quantity; }
+    public LocalDateTime getTimestamp() { return timestamp; }
 
     @Override
     public String toString() {
-        return "Order{" +
-                "orderId=" + orderId +
-                ", productId=" + productId +
-                ", quantity=" + quantity +
-                ", timestamp=" + timestamp +
-                '}';
+        return "Order{id=" + orderId + ", productId=" + productId +
+                ", quantity=" + quantity + ", time=" + timestamp + "}";
     }
 }

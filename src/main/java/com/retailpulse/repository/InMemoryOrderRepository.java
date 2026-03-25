@@ -1,13 +1,12 @@
 package com.retailpulse.repository;
 
 import com.retailpulse.model.Order;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class InMemoryOrderRepository implements OrderRepository {
 
-    private List<Order> orderStore = new ArrayList<>();
+    private List<Order> orderStore =
+            Collections.synchronizedList(new ArrayList<>());
 
     @Override
     public void save(Order order) {
@@ -16,6 +15,6 @@ public class InMemoryOrderRepository implements OrderRepository {
 
     @Override
     public List<Order> findAll() {
-        return orderStore;
+        return new ArrayList<>(orderStore);
     }
 }
