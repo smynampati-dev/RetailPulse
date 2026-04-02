@@ -1,16 +1,11 @@
 package com.retailpulse.app;
 
 import com.retailpulse.model.Product;
-import com.retailpulse.repository.ProductRepository;
-import com.retailpulse.repository.OrderRepository;
-import com.retailpulse.repository.InMemoryProductRepository;
-import com.retailpulse.repository.InMemoryOrderRepository;
+import com.retailpulse.repository.*;
 import com.retailpulse.service.InventoryService;
 import com.retailpulse.service.PurchaseService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class RetailPulseApplication {
@@ -21,16 +16,14 @@ public class RetailPulseApplication {
 
         Scanner scanner = new Scanner(System.in);
 
-        // ✅ Phase 2 — Use interfaces
-        ProductRepository productRepo = new InMemoryProductRepository();
-        OrderRepository orderRepo = new InMemoryOrderRepository();
+        ProductRepository productRepo = new DbProductRepository();
+        OrderRepository orderRepo = new DbOrderRepository();
 
-        // Services
         InventoryService inventoryService = new InventoryService(productRepo);
         PurchaseService purchaseService = new PurchaseService(productRepo, orderRepo);
 
-        int productIdCounter = 1;
-        int orderIdCounter = 100;
+        int productIdCounter = getMaxProductId(productRepo) + 1;
+        int orderIdCounter = (int) (System.currentTimeMillis() % 100000);
 
         while (true) {
 
@@ -58,9 +51,15 @@ public class RetailPulseApplication {
                     int stock = scanner.nextInt();
 
                     Product product = new Product(productIdCounter++, name, price, stock);
-                    inventoryService.addProduct(product);
 
-                    System.out.println("Product added successfully!");
+                    boolean added = inventoryService.addProduct(product);
+
+                    if (added) {
+                        System.out.println("✅ Product added successfully!");
+                    } else {
+                        System.out.println("❌ Failed to add product.");
+                    }
+
                     break;
 
                 case 2:
@@ -75,11 +74,12 @@ public class RetailPulseApplication {
                     System.out.print("Enter quantity: ");
                     int qty = scanner.nextInt();
 
-                    try {
-                        purchaseService.purchaseProduct(orderIdCounter++, pid, qty);
-                    } catch (Exception e) {
-                        System.out.println("Error: " + e.getMessage());
+                    boolean result = purchaseService.purchaseProduct(orderIdCounter++, pid, qty);
+
+                    if (!result) {
+                        System.out.println("❌ Purchase failed!");
                     }
+
                     break;
 
                 case 4:
@@ -88,7 +88,7 @@ public class RetailPulseApplication {
                     break;
 
                 case 5:
-                    simulateFlashSale(inventoryService, purchaseService);
+                    runFlashSale(scanner, inventoryService, purchaseService, orderIdCounter);
                     break;
 
                 case 0:
@@ -102,39 +102,58 @@ public class RetailPulseApplication {
         }
     }
 
-    // 🔥 FINAL FLASH SALE METHOD (PRO LEVEL)
-    private static void simulateFlashSale(InventoryService inventoryService,
-                                          PurchaseService purchaseService) {
+    private static int getMaxProductId(ProductRepository repo) {
+        return repo.findAll().stream()
+                .mapToInt(Product::getId)
+                .max()
+                .orElse(0);
+    }
 
-        System.out.println("\n🔥 Starting FLASH SALE simulation...");
+    // 🔥 FINAL FLASH SALE (CORRECT COUNTING)
+    private static void runFlashSale(Scanner scanner,
+                                     InventoryService inventoryService,
+                                     PurchaseService purchaseService,
+                                     int baseOrderId) {
 
-        int productId = 999;
+        System.out.print("\nEnter product ID for flash sale: ");
+        int productId = scanner.nextInt();
 
-        // Fresh product
-        Product flashProduct = new Product(productId, "FlashItem", 1000, 10);
-        inventoryService.addProduct(flashProduct);
+        Product product = inventoryService.getProduct(productId);
+
+        if (product == null) {
+            System.out.println("❌ Product not found!");
+            return;
+        }
+
+        if (product.getStockQuantity() <= 0) {
+            System.out.println("❌ No stock available!");
+            return;
+        }
+
+        System.out.println("🔥 Starting FLASH SALE for: " + product.getName());
 
         int numberOfUsers = 50;
 
         List<Thread> threads = new ArrayList<>();
 
-        // ✅ Thread-safe counters
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger failureCount = new AtomicInteger(0);
 
         for (int i = 1; i <= numberOfUsers; i++) {
 
-            int orderId = 1000 + i;
+            int orderId = baseOrderId + i;
             int userId = i;
 
             Thread t = new Thread(() -> {
-                try {
-                    purchaseService.purchaseProduct(orderId, productId, 1);
+
+                boolean result = purchaseService.purchaseProduct(orderId, productId, 1);
+
+                if (result) {
                     successCount.incrementAndGet();
                     System.out.println("✅ User " + userId + " SUCCESS");
-                } catch (Exception e) {
+                } else {
                     failureCount.incrementAndGet();
-                    System.out.println("❌ User " + userId + " FAILED: " + e.getMessage());
+                    System.out.println("❌ User " + userId + " FAILED");
                 }
             });
 
@@ -142,7 +161,6 @@ public class RetailPulseApplication {
             t.start();
         }
 
-        // ✅ Wait for all threads
         for (Thread t : threads) {
             try {
                 t.join();
@@ -153,7 +171,6 @@ public class RetailPulseApplication {
 
         Product finalProduct = inventoryService.getProduct(productId);
 
-        // 🔥 FINAL RESULT
         System.out.println("\n===== FLASH SALE RESULT =====");
         System.out.println("Total Success: " + successCount.get());
         System.out.println("Total Failed: " + failureCount.get());

@@ -13,8 +13,9 @@ public class InventoryService {
         this.productRepository = productRepository;
     }
 
-    public void addProduct(Product product) {
-        productRepository.save(product);
+    // 🔥 FINAL: return boolean (no printing here)
+    public boolean addProduct(Product product) {
+        return productRepository.save(product);
     }
 
     public List<Product> getAllProducts() {
@@ -23,15 +24,5 @@ public class InventoryService {
 
     public Product getProduct(int id) {
         return productRepository.findById(id);
-    }
-
-    public void updateStock(int productId, int quantity) {
-        Product product = productRepository.findById(productId);
-
-        if (product == null) {
-            throw new RuntimeException("Product not found!");
-        }
-
-        product.increaseStock(quantity);
     }
 }

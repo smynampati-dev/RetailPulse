@@ -16,6 +16,14 @@ public class Order {
         this.timestamp = LocalDateTime.now();
     }
 
+    // ✅ ADD THIS
+    public Order(int orderId, int productId, int quantity, LocalDateTime timestamp) {
+        this.orderId = orderId;
+        this.productId = productId;
+        this.quantity = quantity;
+        this.timestamp = timestamp;
+    }
+
     public int getOrderId() { return orderId; }
     public int getProductId() { return productId; }
     public int getQuantity() { return quantity; }

@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface ProductRepository {
 
-    void save(Product product);
+    boolean save(Product product); // ✅ UPDATED
 
     Product findById(int id);
 
