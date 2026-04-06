@@ -1,7 +1,7 @@
 # RetailPulse Database Schema
 
 ## Overview
-This project implements a relational database schema for a retail system.
+This project implements a relational database schema for a retail management system.
 
 ## Entities
 - Users
