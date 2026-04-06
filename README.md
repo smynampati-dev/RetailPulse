@@ -18,3 +18,5 @@ This project implements a relational database schema for a retail system.
 
 ```bash
 docker-compose up
+```
+![er_diagram.png](docs/er_diagram.png)
