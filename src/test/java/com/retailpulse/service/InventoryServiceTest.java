@@ -22,6 +22,7 @@ public class InventoryServiceTest {
         assertEquals(1, service.getAllProducts().size());
         assertEquals("Phone", service.getProduct(1).getName());
     }
+
     @Test
     void testPurchaseSuccess() {
 
@@ -34,11 +35,13 @@ public class InventoryServiceTest {
         Product product = new Product(1, "Phone", 50000, 10);
         inventoryService.addProduct(product);
 
-        purchaseService.purchaseProduct(100, 1, 2);
+        boolean result = purchaseService.purchaseProduct(100, 1, 2);
 
+        assertTrue(result);
         assertEquals(8, inventoryService.getProduct(1).getStockQuantity());
         assertEquals(1, orderRepo.findAll().size());
     }
+
     @Test
     void testPurchaseFailure_NotEnoughStock() {
 
@@ -51,12 +54,13 @@ public class InventoryServiceTest {
         Product product = new Product(1, "Phone", 50000, 2);
         inventoryService.addProduct(product);
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            purchaseService.purchaseProduct(100, 1, 5);
-        });
+        boolean result = purchaseService.purchaseProduct(100, 1, 5);
 
-        assertEquals("Not enough stock!", exception.getMessage());
+        assertFalse(result);
+        assertEquals(2, inventoryService.getProduct(1).getStockQuantity());
+        assertEquals(0, orderRepo.findAll().size());
     }
+
     @Test
     void testPurchaseFailure_ProductNotFound() {
 
@@ -65,10 +69,9 @@ public class InventoryServiceTest {
 
         PurchaseService purchaseService = new PurchaseService(productRepo, orderRepo);
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            purchaseService.purchaseProduct(100, 999, 1);
-        });
+        boolean result = purchaseService.purchaseProduct(100, 999, 1);
 
-        assertEquals("Product not found!", exception.getMessage());
+        assertFalse(result);
+        assertEquals(0, orderRepo.findAll().size());
     }
 }

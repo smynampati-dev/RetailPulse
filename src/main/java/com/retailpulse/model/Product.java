@@ -19,11 +19,16 @@ public class Product {
     public double getPrice() { return price; }
     public int getStockQuantity() { return stockQuantity; }
 
+    // 🔥 NEW: setter (needed for service compatibility)
+    public void setStockQuantity(int stockQuantity) {
+        this.stockQuantity = stockQuantity;
+    }
+
     public void increaseStock(int quantity) {
         this.stockQuantity += quantity;
     }
 
-    // 🔥 Thread-safe + atomic
+    // 🔥 BEST METHOD (thread-safe)
     public synchronized boolean decreaseStock(int quantity) {
         if (this.stockQuantity >= quantity) {
             this.stockQuantity -= quantity;

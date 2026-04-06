@@ -22,11 +22,10 @@ public class PurchaseServiceTest {
         Product product = new Product(1, "Test", 100, 10);
         productRepo.save(product);
 
-        purchaseService.purchaseProduct(1, 1, 2);
+        boolean result = purchaseService.purchaseProduct(1, 1, 2);
 
-        Product updated = productRepo.findById(1);
-
-        assertEquals(8, updated.getStockQuantity());
+        assertTrue(result);
+        assertEquals(8, productRepo.findById(1).getStockQuantity());
     }
 
     @Test
@@ -40,11 +39,10 @@ public class PurchaseServiceTest {
         Product product = new Product(1, "Test", 100, 1);
         productRepo.save(product);
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            purchaseService.purchaseProduct(1, 1, 2);
-        });
+        boolean result = purchaseService.purchaseProduct(1, 1, 2);
 
-        assertTrue(exception.getMessage().contains("Out of stock"));
+        assertFalse(result);
+        assertEquals(1, productRepo.findById(1).getStockQuantity());
     }
 
     @Test
@@ -55,12 +53,11 @@ public class PurchaseServiceTest {
 
         PurchaseService purchaseService = new PurchaseService(productRepo, orderRepo);
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            purchaseService.purchaseProduct(1, 99, 1);
-        });
+        boolean result = purchaseService.purchaseProduct(1, 99, 1);
 
-        assertTrue(exception.getMessage().contains("Product not found"));
+        assertFalse(result);
     }
+
     @Test
     void testMultiplePurchasesReduceStockCorrectly() {
 
@@ -75,9 +72,7 @@ public class PurchaseServiceTest {
         purchaseService.purchaseProduct(1, 1, 2);
         purchaseService.purchaseProduct(2, 1, 2);
 
-        Product updated = productRepo.findById(1);
-
-        assertEquals(1, updated.getStockQuantity());
+        assertEquals(1, productRepo.findById(1).getStockQuantity());
     }
 
     @Test
@@ -91,10 +86,9 @@ public class PurchaseServiceTest {
         Product product = new Product(1, "Test", 100, 2);
         productRepo.save(product);
 
-        purchaseService.purchaseProduct(1, 1, 2);
+        boolean result = purchaseService.purchaseProduct(1, 1, 2);
 
-        Product updated = productRepo.findById(1);
-
-        assertEquals(0, updated.getStockQuantity());
+        assertTrue(result);
+        assertEquals(0, productRepo.findById(1).getStockQuantity());
     }
 }
