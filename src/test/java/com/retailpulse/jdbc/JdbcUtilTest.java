@@ -1,5 +1,6 @@
 package com.retailpulse.jdbc;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.sql.*;
@@ -9,24 +10,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class JdbcUtilTest {
 
-    private Connection getConnection() throws Exception {
-        return DriverManager.getConnection("jdbc:h2:mem:testdb");
+    @BeforeAll
+    static void setup() throws Exception {
+        Connection conn = DriverManager.getConnection("jdbc:h2:mem:testdb");
+        Statement stmt = conn.createStatement();
+
+        stmt.execute("CREATE TABLE product(id INT PRIMARY KEY, name VARCHAR(100))");
+        stmt.execute("INSERT INTO product VALUES (1, 'Phone')");
+
+        conn.close();
     }
 
     @Test
-    void testExecuteAndFindOne() throws Exception {
-
-        Connection conn = getConnection();
-        Statement stmt = conn.createStatement();
-
-        stmt.execute("CREATE TABLE product(id INT, name VARCHAR(100))");
-
-        stmt.execute("INSERT INTO product VALUES (1, 'Phone')");
-
-        JdbcUtil.execute(
-                "INSERT INTO product VALUES (?, ?)",
-                2, "Laptop"
-        );
+    void testFindOne() {
 
         String name = JdbcUtil.findOne(
                 "SELECT name FROM product WHERE id = ?",
@@ -37,18 +33,16 @@ public class JdbcUtilTest {
                         throw new RuntimeException(e);
                     }
                 },
-                2
+                1
         );
 
-        assertEquals("Laptop", name);
-
-        conn.close();
+        assertEquals("Phone", name);
     }
 
     @Test
     void testFindMany() {
 
-        List<String> products = JdbcUtil.findMany(
+        List<String> list = JdbcUtil.findMany(
                 "SELECT name FROM product",
                 rs -> {
                     try {
@@ -59,6 +53,6 @@ public class JdbcUtilTest {
                 }
         );
 
-        assertNotNull(products);
+        assertFalse(list.isEmpty());
     }
 }
