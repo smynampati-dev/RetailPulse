@@ -77,3 +77,18 @@ SELECT * FROM users WHERE name = ?
 ### Approach A
 ```java
 execute(String query, Object... args)
+
+## Connection Pooling
+
+### Without Pool (SimpleDataSource)
+- Single connection reused
+- Threads executed sequentially
+- Total time ≈ 10 seconds
+
+### With HikariCP
+- Multiple connections used
+- Threads executed in parallel
+- Total time ≈ 2–3 seconds
+
+### Conclusion
+Connection pooling improves performance by allowing multiple database operations to run concurrently.
