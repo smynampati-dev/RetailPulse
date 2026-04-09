@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class JdbcUtilTest{
+public class JdbcUtil {
 
-    // 🔥 Dynamic config (works for both Postgres + H2)
     private static final String URL =
             System.getProperty("db.url", "jdbc:postgresql://localhost:5432/retailpulse_db");
 
