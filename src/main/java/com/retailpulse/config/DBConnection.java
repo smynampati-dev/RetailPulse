@@ -31,7 +31,7 @@ public class DBConnection {
         // ✔ No errors
         // ❌ May allow race conditions
         // =====================================================
-         conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+         //conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 
 
         // =====================================================
@@ -40,7 +40,7 @@ public class DBConnection {
         // ✔ Ensures full consistency
         // ❌ Some transactions fail (expected)
         // =====================================================
-        //conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+        conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
         return conn;
     }
